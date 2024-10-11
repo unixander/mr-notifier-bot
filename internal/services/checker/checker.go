@@ -58,6 +58,7 @@ func (service *MRCheckerService) Run(ctx context.Context) error {
 		workerGroup.Go(func() error {
 			slog.Info("start checking merge request", "request", request.WebURL)
 			defer slog.Info("finished processing merge request", "request", request.WebURL)
+
 			service.checkUnresolvedDiscussions(ctx, request, resultChan)
 			service.checkApprovals(ctx, request, resultChan)
 
@@ -90,10 +91,10 @@ RESULT_LOOP:
 				break RESULT_LOOP
 			}
 			if err := service.Storage.SaveNotification(ctx, notification); err != nil {
-				slog.Error("error saving notification", "error", err.Error())
+				slog.Error("error saving notification", "error", err)
 			}
 		}
 	}
 
-	return nil
+	return workerGroup.Wait()
 }

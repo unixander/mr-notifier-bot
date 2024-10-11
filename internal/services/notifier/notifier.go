@@ -87,20 +87,20 @@ func (service *NotifierService) Run(ctx context.Context) error {
 
 			message, err := RenderMessage(notificationsByType)
 			if err != nil {
-				slog.Error("cannot render template", "error", err.Error())
-				return nil
+				return fmt.Errorf("cannot render template: %w", err)
 			}
 
 			userChannel := fmt.Sprintf("@%s", username)
 			err = service.MessagingAdapter.SendMessage(userChannel, message)
 			if err != nil {
-				slog.Error("message send failed", "error", err.Error())
-				return nil
+				return fmt.Errorf("message send failed: %w", err)
 			}
 			return nil
 		})
 	}
-	group.Wait()
+	if err := group.Wait(); err != nil {
+		return err
+	}
 
 	service.StorageRepo.Clear(ctx)
 	return nil
