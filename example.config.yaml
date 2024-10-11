@@ -1,0 +1,21 @@
+gitlab:
+  host: https://gitlab.com/api/v4/
+  token:                                    # token with api read access
+  ratelimit: 5                              # requests per second
+mattermost:
+  webhook:                                  # incoming webhook
+  username: MR Notifier Bot                 # username of the bot in mattermost 
+schedule:                                   # is used only in service
+  cron: "* * * * 1-5"                        
+settings:
+  users:
+    allowed: ["username1", "username2"]
+    ignored: ["username3"]
+  repositories:
+    allowed: []
+    ignored: []
+  approvals:
+    count: 2
+  filter:                                    # merge requests filter interval.
+    interval: 12h                            # updated_at > now - 12h
+  group: dev                                 # gitlab group, where projects are located

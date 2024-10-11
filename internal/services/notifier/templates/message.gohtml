@@ -1,0 +1,23 @@
+Привет!
+{{- if .AwaitingPipelineFix }}
+В некоторых твоих МРах необходимо поправить pipeline:
+{{ range .AwaitingPipelineFix }} - {{.Link}}
+{{ end }}
+{{- end }}
+{{- if .AwaitingThreadResponse }}
+В следующих МРах есть комментарии, которые ожидают твоего ответа:
+{{ range .AwaitingThreadResponse }} - {{.Link}}
+{{ end }}
+{{- end }}
+{{- if .AwaitingReview }}
+Твои коллеги ожидают ревью по следующим MRам:
+{{ range .AwaitingReview }} - {{.Link}}
+{{ end }}
+{{- end }}
+{{- if .AwaitingThreadResolve }}
+На твои комментарии ответили в следующих МРах,
+Посмотри и зарезолвь, если все в порядке.
+{{ range .AwaitingThreadResolve }} - {{.Link}}
+{{ end }}
+{{- end }}
+Было бы замечательно поревьюить МРы и устранить ошибки\ответить на комментарии в этих МРах до следующего дейли.
