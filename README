@@ -1,4 +1,4 @@
-# Gitlab MergeRequest notifications
+# Gitlab MergeRequest reminder bot
 
 Checks if merge requests have some unfinished discussions or do not have enough approvals.
 Notifications are send to Mattermost through incoming webhooks.
