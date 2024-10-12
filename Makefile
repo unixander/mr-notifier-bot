@@ -25,7 +25,7 @@ build-service:
 
 ## build-service-linux: build for linux as the service
 .PHONY: build-service-linux
-build-linux:
+build-service-linux:
 	GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(version)'" -o=./bin/$(service_binary_name)-linux $(service_main_package_path)
 
 ## run-service: run the  application as the service

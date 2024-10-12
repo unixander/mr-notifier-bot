@@ -1,6 +1,8 @@
 package config
 
-import "time"
+import (
+	"time"
+)
 
 type Settings struct {
 	AllowedUsers                []string       `koanf:"users.allowed"`

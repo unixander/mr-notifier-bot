@@ -20,7 +20,7 @@ func main() {
 		slog.Error("cannot load config", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("config loaded")
+	slog.Info("config loaded", "config", config.Settings)
 	if err := internal.Run(config); err != nil {
 		slog.Error("application error", "error", err)
 		os.Exit(1)
