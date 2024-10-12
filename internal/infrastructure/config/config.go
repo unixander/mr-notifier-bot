@@ -33,8 +33,14 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	if err := koanfInstance.Load(env.Provider("BOT_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, "BOT_")), "_", ".", -1)
+	if err := koanfInstance.Load(env.ProviderWithValue("BOT_", ".", func(key, value string) (string, interface{}) {
+		key = strings.Replace(strings.ToLower(strings.TrimPrefix(key, "BOT_")), "_", ".", -1)
+		if strings.HasSuffix(key, ".array") {
+			key = strings.TrimRight(key, ".array")
+			arrValue := strings.Split(value, ",")
+			return key, arrValue
+		}
+		return key, value
 	}), nil); err != nil {
 		return nil, err
 	}
