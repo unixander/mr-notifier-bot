@@ -11,10 +11,11 @@ import (
 type MattermostAdapter struct {
 	logger   slog.Logger
 	client   *slack.Client
+	channel  string
 	username string
 }
 
-func New(cfg *config.MattermostConfig) *MattermostAdapter {
+func New(cfg *config.MattermostConfig, channel string) *MattermostAdapter {
 	return &MattermostAdapter{
 		logger: *slog.With(
 			slog.String("service", "mattermost"),
@@ -23,20 +24,21 @@ func New(cfg *config.MattermostConfig) *MattermostAdapter {
 			WebhookURL: cfg.IncomingWebhook,
 		},
 		username: cfg.BotUsername,
+		channel:  channel,
 	}
 }
 
-func (mm *MattermostAdapter) SendMessage(channel string, message string) error {
-	if channel == "" {
+func (mm *MattermostAdapter) SendMessage(message string) error {
+	if mm.channel == "" {
 		return fmt.Errorf("cannot send to empty channel")
 	}
 	if err := mm.client.Send(&slack.Message{
 		Username: mm.username,
 		Text:     message,
-		Channel:  channel,
+		Channel:  mm.channel,
 	}); err != nil {
 		return err
 	}
-	mm.logger.Info("successfully sent", "channel", channel, "message", message)
+	mm.logger.Info("successfully sent", "message", message)
 	return nil
 }

@@ -31,7 +31,7 @@ func InitCheckerSrv(ctx context.Context, storageRepo checker.StorageRepo, cfg *c
 }
 
 func InitNotifier(ctx context.Context, storageRepo notifier.StorageRepo, cfg *config.Config) (*notifier.NotifierService, error) {
-	mmAdapter := mattermost.New(&cfg.Mattermost)
+	mmAdapter := mattermost.New(&cfg.Mattermost, cfg.Settings.NotificationChannel)
 	notificationSvc := notifier.New(
 		mmAdapter,
 		storageRepo,

@@ -1,23 +1,26 @@
-Привет!
+|Type | Link | Participants |
+|---|---|---|
 {{- if .AwaitingPipelineFix }}
-В некоторых твоих МРах необходимо поправить pipeline:
-{{ range $link, $value := .AwaitingPipelineFix }} - {{$link}}
-{{ end }}
-{{- end }}
+| Нужен фикс пайплайна |  |  |
+{{ range $link, $users := .AwaitingPipelineFix }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
+{{ -end }}
+{{ -end }}
 {{- if .AwaitingThreadResponse }}
-В следующих МРах есть комментарии, которые ожидают твоего ответа:
-{{ range $link, $value := .AwaitingThreadResponse }} - {{$link}}
-{{ end }}
-{{- end }}
-{{- if .AwaitingReview }}
-Твои коллеги ожидают ревью по следующим MRам:
-{{ range $link, $value := .AwaitingReview }} - {{$link}}
-{{ end }}
-{{- end }}
+| Ожидают ответа |  |  |
+{{ range $link, $users := .AwaitingThreadResponse }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
+{{ -end }}
+{{ -end }}
 {{- if .AwaitingThreadResolve }}
-На твои комментарии ответили в следующих МРах,
-Посмотри и зарезолвь, если все в порядке.
-{{ range $link, $value := .AwaitingThreadResolve }} - {{$link}}
-{{ end }}
-{{- end }}
-Было бы замечательно поревьюить МРы и устранить ошибки\ответить на комментарии в этих МРах до следующего дейли.
+| Ожидают закрытия дискуссий |  |  |
+{{ range $link, $users := .AwaitingThreadResolve }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
+{{ -end }}
+{{ -end }}
+{{- if .AwaitingReview }}
+| Ожидают ревью |  |  |
+{{ range $link, $users := .AwaitingReview }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
+{{ -end }}
+{{ -end }}

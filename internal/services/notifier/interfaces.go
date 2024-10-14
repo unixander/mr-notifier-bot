@@ -6,7 +6,7 @@ import (
 )
 
 type MessagingAdapter interface {
-	SendMessage(string, string) error
+	SendMessage(string) error
 }
 
 type StorageRepo interface {

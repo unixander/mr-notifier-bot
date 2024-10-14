@@ -8,8 +8,6 @@ import (
 	"html/template"
 	"log/slog"
 	domainNotifications "review_reminder_bot/internal/domain/notifications"
-
-	"golang.org/x/sync/errgroup"
 )
 
 var messageTemplate *template.Template
@@ -22,19 +20,21 @@ func init() {
 }
 
 type NotificationsByTypeTemplateCtx struct {
-	AwaitingReview         map[string]struct{}
-	AwaitingThreadResponse map[string]struct{}
-	AwaitingThreadResolve  map[string]struct{}
-	AwaitingPipelineFix    map[string]struct{}
+	AwaitingReview         map[string]map[string]struct{}
+	AwaitingThreadResponse map[string]map[string]struct{}
+	AwaitingThreadResolve  map[string]map[string]struct{}
+	AwaitingPipelineFix    map[string]map[string]struct{}
 }
 
 func NewNotificationByTypeTemplateCtx() *NotificationsByTypeTemplateCtx {
-	return &NotificationsByTypeTemplateCtx{
-		AwaitingReview:         make(map[string]struct{}),
-		AwaitingThreadResponse: make(map[string]struct{}),
-		AwaitingThreadResolve:  make(map[string]struct{}),
-		AwaitingPipelineFix:    make(map[string]struct{}),
+	templateCtx := &NotificationsByTypeTemplateCtx{
+		AwaitingReview:         make(map[string]map[string]struct{}),
+		AwaitingThreadResponse: make(map[string]map[string]struct{}),
+		AwaitingThreadResolve:  make(map[string]map[string]struct{}),
+		AwaitingPipelineFix:    make(map[string]map[string]struct{}),
 	}
+
+	return templateCtx
 }
 
 type NotifierService struct {
@@ -58,57 +58,52 @@ func RenderMessage(templateCtx *NotificationsByTypeTemplateCtx) (string, error) 
 	return buf.String(), nil
 }
 
+func AddUser(mapStruct map[string]map[string]struct{}, notitification *domainNotifications.Notification) {
+	if _, found := mapStruct[notitification.Link()]; !found {
+		mapStruct[notitification.Link()] = make(map[string]struct{})
+	}
+	mapStruct[notitification.Link()][notitification.UserName] = struct{}{}
+}
+
 func (service *NotifierService) Run(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return nil
 	}
-
-	group, ctx := errgroup.WithContext(ctx)
-	group.SetLimit(5)
-
+	notificationsByType := NewNotificationByTypeTemplateCtx()
 	usernames, _ := service.StorageRepo.GetUsernamesToNotify(ctx)
 	for _, username := range usernames {
 		if len(username) == 0 {
 			continue
 		}
 
-		group.Go(func() error {
-			notifications, err := service.StorageRepo.GetNotificationsByUsername(ctx, username)
-			if err != nil {
-				return err
-			}
+		notifications, err := service.StorageRepo.GetNotificationsByUsername(ctx, username)
+		if err != nil {
+			return err
+		}
 
-			notificationsByType := NewNotificationByTypeTemplateCtx()
-			for _, notification := range notifications {
-				switch notification.Type {
-				case domainNotifications.AwaitingReview:
-					notificationsByType.AwaitingReview[notification.Link()] = struct{}{}
-				case domainNotifications.AwaitingPipelineFix:
-					notificationsByType.AwaitingPipelineFix[notification.Link()] = struct{}{}
-				case domainNotifications.AwaitingThreadResolve:
-					notificationsByType.AwaitingThreadResolve[notification.Link()] = struct{}{}
-				case domainNotifications.AwaitingThreadResponse:
-					notificationsByType.AwaitingThreadResponse[notification.Link()] = struct{}{}
-				default:
-					slog.Error("invalid type", "type", notification.Type)
-				}
+		for _, notification := range notifications {
+			switch notification.Type {
+			case domainNotifications.AwaitingReview:
+				AddUser(notificationsByType.AwaitingReview, notification)
+			case domainNotifications.AwaitingPipelineFix:
+				AddUser(notificationsByType.AwaitingPipelineFix, notification)
+			case domainNotifications.AwaitingThreadResolve:
+				AddUser(notificationsByType.AwaitingThreadResolve, notification)
+			case domainNotifications.AwaitingThreadResponse:
+				AddUser(notificationsByType.AwaitingThreadResponse, notification)
+			default:
+				slog.Error("invalid type", "type", notification.Type)
 			}
-
-			message, err := RenderMessage(notificationsByType)
-			if err != nil {
-				return fmt.Errorf("cannot render template: %w", err)
-			}
-
-			userChannel := fmt.Sprintf("@%s", username)
-			err = service.MessagingAdapter.SendMessage(userChannel, message)
-			if err != nil {
-				return fmt.Errorf("message send failed: %w", err)
-			}
-			return nil
-		})
+		}
 	}
-	if err := group.Wait(); err != nil {
-		return err
+	message, err := RenderMessage(notificationsByType)
+	if err != nil {
+		return fmt.Errorf("cannot render template: %w", err)
+	}
+
+	err = service.MessagingAdapter.SendMessage(message)
+	if err != nil {
+		return fmt.Errorf("message send failed: %w", err)
 	}
 
 	service.StorageRepo.Clear(ctx)
