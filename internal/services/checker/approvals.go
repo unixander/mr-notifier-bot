@@ -10,6 +10,7 @@ import (
 func (service *MRCheckerService) checkApprovals(
 	ctx context.Context,
 	request *domainRequests.MergeRequest,
+	unresolvedParticipants map[string]struct{},
 	notificationChan chan *domainNotifications.Notification,
 ) {
 	// Check approvals
@@ -43,6 +44,9 @@ func (service *MRCheckerService) checkApprovals(
 			continue
 		}
 		if participant.ID == request.Author.ID || request.IsAssignee(participant.ID) {
+			continue
+		}
+		if _, waitingResponse := unresolvedParticipants[participant.Username]; waitingResponse {
 			continue
 		}
 

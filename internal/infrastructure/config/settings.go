@@ -12,6 +12,7 @@ type Settings struct {
 	ApprovalsRequired           int            `koanf:"approvals.count"`
 	MergeRequestsFilterInterval *time.Duration `koanf:"filter.interval"`
 	GroupID                     string         `koanf:"group"`
+	IgnoredWebUrlsRegexp        []string       `koanf:"weburls.ignored"`
 }
 
 func NewSettings() Settings {

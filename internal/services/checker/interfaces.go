@@ -21,4 +21,5 @@ type StorageRepo interface {
 type AccessManager interface {
 	IsUserAllowed(username string) bool
 	IsRepositoryAllowed(repoID int) bool
+	IsWebUrlAllowed(weburl string) bool
 }

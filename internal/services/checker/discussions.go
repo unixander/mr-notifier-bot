@@ -9,13 +9,15 @@ import (
 	"slices"
 )
 
-func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context, request *domainRequests.MergeRequest, notificationChan chan *domainNotifications.Notification) {
+func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context, request *domainRequests.MergeRequest, notificationChan chan *domainNotifications.Notification) map[string]struct{} {
 	// Check unresolved discussions
 	discussions, err := service.RepoAdapter.GetMergeRequestDiscussions(ctx, request.ProjectID, request.IID)
 	if err != nil {
 		slog.Error("cannot get discussions", "error", err)
-		return
+		return nil
 	}
+
+	unresolvedNotesParticipants := make(map[string]struct{})
 
 	for _, discussion := range discussions {
 		if len(discussion.Notes) == 0 {
@@ -50,6 +52,10 @@ func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context,
 			continue
 		}
 
+		for _, note := range discussion.Notes {
+			unresolvedNotesParticipants[note.Author.Username] = struct{}{}
+		}
+
 		if !request.IsAssignee(lastNote.Author.ID) {
 			// Assignee should answer to the comment
 			for _, assignee := range request.Assignees {
@@ -81,4 +87,5 @@ func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context,
 			}
 		}
 	}
+	return unresolvedNotesParticipants
 }

@@ -22,10 +22,19 @@ func init() {
 }
 
 type NotificationsByTypeTemplateCtx struct {
-	AwaitingReview         []*domainNotifications.Notification
-	AwaitingThreadResponse []*domainNotifications.Notification
-	AwaitingThreadResolve  []*domainNotifications.Notification
-	AwaitingPipelineFix    []*domainNotifications.Notification
+	AwaitingReview         map[string]struct{}
+	AwaitingThreadResponse map[string]struct{}
+	AwaitingThreadResolve  map[string]struct{}
+	AwaitingPipelineFix    map[string]struct{}
+}
+
+func NewNotificationByTypeTemplateCtx() *NotificationsByTypeTemplateCtx {
+	return &NotificationsByTypeTemplateCtx{
+		AwaitingReview:         make(map[string]struct{}),
+		AwaitingThreadResponse: make(map[string]struct{}),
+		AwaitingThreadResolve:  make(map[string]struct{}),
+		AwaitingPipelineFix:    make(map[string]struct{}),
+	}
 }
 
 type NotifierService struct {
@@ -69,17 +78,17 @@ func (service *NotifierService) Run(ctx context.Context) error {
 				return err
 			}
 
-			notificationsByType := &NotificationsByTypeTemplateCtx{}
+			notificationsByType := NewNotificationByTypeTemplateCtx()
 			for _, notification := range notifications {
 				switch notification.Type {
 				case domainNotifications.AwaitingReview:
-					notificationsByType.AwaitingReview = append(notificationsByType.AwaitingReview, notification)
+					notificationsByType.AwaitingReview[notification.Link()] = struct{}{}
 				case domainNotifications.AwaitingPipelineFix:
-					notificationsByType.AwaitingPipelineFix = append(notificationsByType.AwaitingPipelineFix, notification)
+					notificationsByType.AwaitingPipelineFix[notification.Link()] = struct{}{}
 				case domainNotifications.AwaitingThreadResolve:
-					notificationsByType.AwaitingThreadResolve = append(notificationsByType.AwaitingThreadResolve, notification)
+					notificationsByType.AwaitingThreadResolve[notification.Link()] = struct{}{}
 				case domainNotifications.AwaitingThreadResponse:
-					notificationsByType.AwaitingThreadResponse = append(notificationsByType.AwaitingThreadResponse, notification)
+					notificationsByType.AwaitingThreadResponse[notification.Link()] = struct{}{}
 				default:
 					slog.Error("invalid type", "type", notification.Type)
 				}

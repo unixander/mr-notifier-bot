@@ -1,12 +1,17 @@
 package accesscontrol
 
-import "review_reminder_bot/internal/infrastructure/config"
+import (
+	"regexp"
+	"review_reminder_bot/internal/infrastructure/config"
+	"strings"
+)
 
 type AccessManager struct {
-	allowedUsers        map[string]struct{}
-	ignoredUsers        map[string]struct{}
-	allowedRepositories map[int]struct{}
-	ignoredRepositories map[int]struct{}
+	allowedUsers         map[string]struct{}
+	ignoredUsers         map[string]struct{}
+	allowedRepositories  map[int]struct{}
+	ignoredRepositories  map[int]struct{}
+	ignoredWebUrlsRegexp *regexp.Regexp
 }
 
 func New(cfg *config.Settings) *AccessManager {
@@ -15,7 +20,9 @@ func New(cfg *config.Settings) *AccessManager {
 	fillLookupCache(cfg.IgnoredUsers, &manager.ignoredUsers)
 	fillLookupCache(cfg.AllowedRepositories, &manager.allowedRepositories)
 	fillLookupCache(cfg.IgnoredRepositories, &manager.ignoredRepositories)
-
+	if len(cfg.IgnoredWebUrlsRegexp) > 0 {
+		manager.ignoredWebUrlsRegexp = regexp.MustCompile(strings.Join(cfg.IgnoredWebUrlsRegexp, "|"))
+	}
 	return manager
 }
 
@@ -63,4 +70,11 @@ func (manager *AccessManager) InAllowedRepositories(repoID int) bool {
 
 func (manager *AccessManager) IsRepositoryAllowed(repoID int) bool {
 	return !manager.InIgnoredRepositories(repoID) && manager.InAllowedRepositories(repoID)
+}
+
+func (manager *AccessManager) IsWebUrlAllowed(weburl string) bool {
+	if manager.ignoredWebUrlsRegexp == nil {
+		return true
+	}
+	return !manager.ignoredWebUrlsRegexp.MatchString(weburl)
 }

@@ -1,23 +1,23 @@
 Привет!
 {{- if .AwaitingPipelineFix }}
 В некоторых твоих МРах необходимо поправить pipeline:
-{{ range .AwaitingPipelineFix }} - {{.Link}}
+{{ range $link, $value := .AwaitingPipelineFix }} - {{$link}}
 {{ end }}
 {{- end }}
 {{- if .AwaitingThreadResponse }}
 В следующих МРах есть комментарии, которые ожидают твоего ответа:
-{{ range .AwaitingThreadResponse }} - {{.Link}}
+{{ range $link, $value := .AwaitingThreadResponse }} - {{$link}}
 {{ end }}
 {{- end }}
 {{- if .AwaitingReview }}
 Твои коллеги ожидают ревью по следующим MRам:
-{{ range .AwaitingReview }} - {{.Link}}
+{{ range $link, $value := .AwaitingReview }} - {{$link}}
 {{ end }}
 {{- end }}
 {{- if .AwaitingThreadResolve }}
 На твои комментарии ответили в следующих МРах,
 Посмотри и зарезолвь, если все в порядке.
-{{ range .AwaitingThreadResolve }} - {{.Link}}
+{{ range $link, $value := .AwaitingThreadResolve }} - {{$link}}
 {{ end }}
 {{- end }}
 Было бы замечательно поревьюить МРы и устранить ошибки\ответить на комментарии в этих МРах до следующего дейли.

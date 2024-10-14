@@ -54,13 +54,16 @@ func (service *MRCheckerService) Run(ctx context.Context) error {
 			slog.Info("skipped repository", "repoID", request.ID)
 			continue
 		}
+		if !service.AccessManager.IsWebUrlAllowed(request.WebURL) {
+			continue
+		}
 
 		workerGroup.Go(func() error {
 			slog.Info("start checking merge request", "request", request.WebURL)
 			defer slog.Info("finished processing merge request", "request", request.WebURL)
 
-			service.checkUnresolvedDiscussions(ctx, request, resultChan)
-			service.checkApprovals(ctx, request, resultChan)
+			unresolvedParticipants := service.checkUnresolvedDiscussions(ctx, request, resultChan)
+			service.checkApprovals(ctx, request, unresolvedParticipants, resultChan)
 
 			if request.Pipeline != nil && request.Pipeline.Status == domainRequests.PipelineFailed {
 				service.Notify(ctx, resultChan, &domainNotifications.Notification{
