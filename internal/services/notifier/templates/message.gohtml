@@ -2,25 +2,25 @@
 |---|---|---|
 {{- if .AwaitingPipelineFix }}
 | Нужен фикс пайплайна |  |  |
-{{ range $link, $users := .AwaitingPipelineFix }}
-|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
-{{ -end }}
-{{ -end }}
+{{- range $link, $users := .AwaitingPipelineFix }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ end }}|
+{{- end }}
+{{- end }}
 {{- if .AwaitingThreadResponse }}
 | Ожидают ответа |  |  |
-{{ range $link, $users := .AwaitingThreadResponse }}
-|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
-{{ -end }}
-{{ -end }}
+{{- range $link, $users := .AwaitingThreadResponse }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ end }}|
+{{- end }}
+{{- end }}
 {{- if .AwaitingThreadResolve }}
 | Ожидают закрытия дискуссий |  |  |
-{{ range $link, $users := .AwaitingThreadResolve }}
-|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
-{{ -end }}
-{{ -end }}
+{{- range $link, $users := .AwaitingThreadResolve }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ end }}|
+{{- end }}
+{{- end }}
 {{- if .AwaitingReview }}
 | Ожидают ревью |  |  |
-{{ range $link, $users := .AwaitingReview }}
-|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ -end }} |
-{{ -end }}
-{{ -end }}
+{{- range $link, $users := .AwaitingReview }}
+|   | {{ $link }} | {{ range $username, $value := $users }}{{ $username }} {{ end }}|
+{{- end }}
+{{- end }}

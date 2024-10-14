@@ -37,6 +37,13 @@ func NewNotificationByTypeTemplateCtx() *NotificationsByTypeTemplateCtx {
 	return templateCtx
 }
 
+func (templateCtx NotificationsByTypeTemplateCtx) IsEmpty() bool {
+	return (len(templateCtx.AwaitingPipelineFix) == 0 &&
+		len(templateCtx.AwaitingReview) == 0 &&
+		len(templateCtx.AwaitingThreadResolve) == 0 &&
+		len(templateCtx.AwaitingThreadResponse) == 0)
+}
+
 type NotifierService struct {
 	MessagingAdapter MessagingAdapter
 	StorageRepo      StorageRepo
@@ -96,14 +103,19 @@ func (service *NotifierService) Run(ctx context.Context) error {
 			}
 		}
 	}
-	message, err := RenderMessage(notificationsByType)
-	if err != nil {
-		return fmt.Errorf("cannot render template: %w", err)
-	}
 
-	err = service.MessagingAdapter.SendMessage(message)
-	if err != nil {
-		return fmt.Errorf("message send failed: %w", err)
+	if notificationsByType.IsEmpty() {
+		slog.Info("nothing to send")
+	} else {
+		message, err := RenderMessage(notificationsByType)
+		if err != nil {
+			return fmt.Errorf("cannot render template: %w", err)
+		}
+
+		err = service.MessagingAdapter.SendMessage(message)
+		if err != nil {
+			return fmt.Errorf("message send failed: %w", err)
+		}
 	}
 
 	service.StorageRepo.Clear(ctx)

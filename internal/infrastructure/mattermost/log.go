@@ -16,7 +16,7 @@ func NewLog() *LogNotifier {
 	}
 }
 
-func (ln *LogNotifier) SendMessage(channel string, message string) error {
-	ln.logger.Info("successfully sent", "channel", channel, "message", message)
+func (ln *LogNotifier) SendMessage(message string) error {
+	ln.logger.Info("successfully sent", "message", message)
 	return nil
 }
