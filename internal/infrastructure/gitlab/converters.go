@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	domainRequests "review_reminder_bot/internal/domain/requests"
+	"slices"
 
 	gitlabExt "github.com/xanzy/go-gitlab"
 )
@@ -94,8 +95,30 @@ func FromDiscussionToDomain(extDiscussion *gitlabExt.Discussion) *domainRequests
 					Name:     note.Author.Name,
 					State:    note.Author.State,
 				},
+				Resolvable: note.Resolvable,
+				Resolved:   note.Resolved,
+				CreatedAt:  note.CreatedAt,
 			})
 		}
+
+		slices.SortStableFunc(discussion.Notes, func(first, second *domainRequests.Note) int {
+			if first.CreatedAt == nil && second.CreatedAt == nil {
+				return 0
+			}
+			if first.CreatedAt == nil && second.CreatedAt != nil {
+				return -1
+			}
+			if first.CreatedAt != nil && second.CreatedAt == nil {
+				return 1
+			}
+
+			if first.CreatedAt.Before(*second.CreatedAt) {
+				return -1
+			} else if first.CreatedAt.After(*second.CreatedAt) {
+				return 1
+			}
+			return 0
+		})
 	}
 	return discussion
 }

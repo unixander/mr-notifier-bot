@@ -6,7 +6,6 @@ import (
 	"maps"
 	domainNotifications "review_reminder_bot/internal/domain/notifications"
 	domainRequests "review_reminder_bot/internal/domain/requests"
-	"slices"
 )
 
 func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context, request *domainRequests.MergeRequest, notificationChan chan *domainNotifications.Notification) map[string]struct{} {
@@ -23,24 +22,6 @@ func (service *MRCheckerService) checkUnresolvedDiscussions(ctx context.Context,
 		if len(discussion.Notes) == 0 {
 			continue
 		}
-		slices.SortStableFunc(discussion.Notes, func(first, second *domainRequests.Note) int {
-			if first.CreatedAt == nil && second.CreatedAt == nil {
-				return 0
-			}
-			if first.CreatedAt == nil && second.CreatedAt != nil {
-				return -1
-			}
-			if first.CreatedAt != nil && second.CreatedAt == nil {
-				return 1
-			}
-
-			if first.CreatedAt.Before(*second.CreatedAt) {
-				return -1
-			} else if first.CreatedAt.After(*second.CreatedAt) {
-				return 1
-			}
-			return 0
-		})
 
 		lastNote := discussion.Notes[len(discussion.Notes)-1]
 		if lastNote.Resolved {
