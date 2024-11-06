@@ -49,6 +49,24 @@ func (service *MRCheckerService) Run(ctx context.Context) error {
 
 	resultChan := make(chan *domainNotifications.Notification)
 
+	go func() {
+	RESULT_LOOP:
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case notification, ok := <-resultChan:
+				if !ok {
+					break RESULT_LOOP
+				}
+				if err := service.Storage.SaveNotification(ctx, notification); err != nil {
+					slog.Error("error saving notification", "error", err)
+				}
+			}
+		}
+
+	}()
+
 	for request := range requestsChan {
 		if !service.AccessManager.IsRepositoryAllowed(request.ID) || !service.AccessManager.IsRepositoryAllowed(request.IID) {
 			slog.Info("skipped repository", "repoID", request.ID)
@@ -84,19 +102,8 @@ func (service *MRCheckerService) Run(ctx context.Context) error {
 		close(resultChan)
 	}()
 
-RESULT_LOOP:
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case notification, ok := <-resultChan:
-			if !ok {
-				break RESULT_LOOP
-			}
-			if err := service.Storage.SaveNotification(ctx, notification); err != nil {
-				slog.Error("error saving notification", "error", err)
-			}
-		}
+	if ctx.Err() != nil {
+		return ctx.Err()
 	}
 
 	return workerGroup.Wait()
